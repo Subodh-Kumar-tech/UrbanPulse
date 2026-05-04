@@ -20,6 +20,12 @@ export const api = {
     return res.json();
   },
 
+  // Users
+  getUsers: async () => {
+    const res = await fetch(`${API_URL}/users`);
+    return res.json();
+  },
+
   // Complaints
   getComplaints: async () => {
     const res = await fetch(`${API_URL}/complaints`);

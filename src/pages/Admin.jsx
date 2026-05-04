@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, AlertCircle, Clock, Trash2, Download, RotateCcw, Search, ChevronDown, BarChart2, ShieldAlert, CheckCircle2, ThumbsUp, MessageSquare } from 'lucide-react';
+import { Check, AlertCircle, Clock, Trash2, Download, RotateCcw, Search, ChevronDown, BarChart2, ShieldAlert, CheckCircle2, ThumbsUp, MessageSquare, Users } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FadeIn } from '@/components/ui/Animations';
 import { useStore } from '@/lib/Store';
+import api from '@/lib/api';
 import { Link } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -64,8 +65,24 @@ export default function Admin() {
 
   const [deptFilter, setDeptFilter] = useState(userDept);
   const [expandedId, setExpandedId] = useState(null);
-  const [activeTab, setActiveTab] = useState('issues'); // 'issues' or 'depts'
-  
+  const [activeTab, setActiveTab] = useState('issues'); // 'issues', 'depts', or 'users'
+  const [usersList, setUsersList] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [expandedUserId, setExpandedUserId] = useState(null);
+
+  useEffect(() => {
+    if (activeTab === 'users' && isSuperAdmin && usersList.length === 0) {
+      setLoadingUsers(true);
+      api.getUsers().then(data => {
+        setUsersList(data);
+        setLoadingUsers(false);
+      }).catch(err => {
+        console.error(err);
+        setLoadingUsers(false);
+      });
+    }
+  }, [activeTab, isSuperAdmin, usersList.length]);
+
   // Local state for creating new dept user
   const [newDeptUser, setNewDeptUser] = useState({ name: '', email: '', deptId: '', department: '' });
 
@@ -198,13 +215,22 @@ export default function Admin() {
         </div>
         <div className="flex gap-3 flex-wrap">
           {isSuperAdmin && (
-            <Button 
-              variant={activeTab === 'depts' ? 'default' : 'outline'} 
-              onClick={() => setActiveTab(activeTab === 'issues' ? 'depts' : 'issues')}
-              className="gap-2"
-            >
-              <ShieldAlert className="w-4 h-4" /> {activeTab === 'issues' ? 'Manage Departments' : 'Back to Issues'}
-            </Button>
+            <>
+              <Button 
+                variant={activeTab === 'depts' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab(activeTab === 'depts' ? 'issues' : 'depts')}
+                className="gap-2"
+              >
+                <ShieldAlert className="w-4 h-4" /> {activeTab === 'depts' ? 'Back to Issues' : 'Manage Departments'}
+              </Button>
+              <Button 
+                variant={activeTab === 'users' ? 'default' : 'outline'} 
+                onClick={() => setActiveTab(activeTab === 'users' ? 'issues' : 'users')}
+                className="gap-2"
+              >
+                <Users className="w-4 h-4" /> {activeTab === 'users' ? 'Back to Issues' : 'Manage Users'}
+              </Button>
+            </>
           )}
           <Button variant="outline" onClick={clearResolved} className="gap-2 text-muted-foreground hover:text-destructive border-destructive/30">
             <RotateCcw className="w-4 h-4" /> Clear Resolved
@@ -485,6 +511,87 @@ export default function Admin() {
             </AnimatePresence>
           </div>
         </>
+      ) : activeTab === 'users' ? (
+        /* Manage Users Tab */
+        <FadeIn className="space-y-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-heading font-black">Registered Users</h2>
+            <p className="text-sm text-muted-foreground">Total Users: {usersList.length}</p>
+          </div>
+          {loadingUsers ? (
+            <div className="text-center py-10 text-muted-foreground">Loading users...</div>
+          ) : (
+            <div className="grid gap-4">
+              {usersList.map((u, idx) => {
+                const userComplaints = complaints.filter(c => c.user === u.name);
+                const isExpanded = expandedUserId === u._id;
+                return (
+                  <motion.div 
+                    key={u._id} 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="glass-card overflow-hidden border border-border"
+                  >
+                    <div 
+                      className="p-4 flex items-center justify-between cursor-pointer hover:bg-secondary/20 transition-colors"
+                      onClick={() => setExpandedUserId(isExpanded ? null : u._id)}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
+                          {u.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg">{u.name}</h3>
+                          <p className="text-sm text-muted-foreground">{u.email} • Joined {new Date(u.createdAt).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-sm font-bold">{userComplaints.length}</p>
+                          <p className="text-xs text-muted-foreground">Issues Raised</p>
+                        </div>
+                        <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      </div>
+                    </div>
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="bg-secondary/10 border-t border-border p-4"
+                        >
+                          <h4 className="font-bold mb-3 text-sm uppercase tracking-wider text-muted-foreground">Issues Raised by {u.name}</h4>
+                          {userComplaints.length === 0 ? (
+                            <p className="text-sm text-muted-foreground italic">No issues raised yet.</p>
+                          ) : (
+                            <div className="grid gap-2">
+                              {userComplaints.map(c => (
+                                <Link key={c._id} to={`/issue/${c._id}`} className="block">
+                                  <div className="flex items-center justify-between p-3 rounded-lg bg-background border border-border hover:border-primary/50 transition-colors">
+                                    <div className="flex items-center gap-3">
+                                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS[c.status] }}></span>
+                                      <span className="font-medium text-sm truncate max-w-[200px]">{c.title}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                      <span className="bg-secondary px-2 py-0.5 rounded-full">{c.category}</span>
+                                      <span>{new Date(c.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </FadeIn>
       ) : (
         /* Manage Departments Tab */
         <FadeIn className="glass-card p-8">
