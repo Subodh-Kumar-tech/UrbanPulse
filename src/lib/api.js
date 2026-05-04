@@ -26,6 +26,13 @@ export const api = {
     return res.json();
   },
 
+  deleteUser: async (id) => {
+    const res = await fetch(`${API_URL}/users/${id}`, {
+      method: 'DELETE'
+    });
+    return res.json();
+  },
+
   // Complaints
   getComplaints: async () => {
     const res = await fetch(`${API_URL}/complaints`);

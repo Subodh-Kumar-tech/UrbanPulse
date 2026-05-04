@@ -12,7 +12,7 @@ import { useStore } from '@/lib/Store';
 import { api } from '@/lib/api';
 import { Link } from 'react-router-dom';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 const DEPARTMENTS = ['PWD (Roads)', 'Water Dept', 'Sanitation (Waste)', 'Traffic Police', 'Parks & Rec', 'Electricity Board'];
 const STATUS_OPTIONS = ['Pending', 'In Progress', 'Resolved'];
@@ -82,6 +82,19 @@ export default function Admin() {
       });
     }
   }, [activeTab, isSuperAdmin, usersList.length]);
+
+  const handleDeleteUser = async (e, userId, userName) => {
+    e.stopPropagation();
+    if (window.confirm(`Are you sure you want to permanently delete user ${userName}?`)) {
+      try {
+        await api.deleteUser(userId);
+        setUsersList(prev => prev.filter(u => u._id !== userId));
+        alert(`User ${userName} deleted successfully.`);
+      } catch (err) {
+        alert('Failed to delete user: ' + err.message);
+      }
+    }
+  };
 
   // Local state for creating new dept user
   const [newDeptUser, setNewDeptUser] = useState({ name: '', email: '', deptId: '', department: '' });
@@ -157,7 +170,7 @@ export default function Admin() {
       new Date(c.createdAt).toLocaleDateString()
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: 35,
       head: [['Title', 'Category', 'Status', 'Location', 'User', 'Assigned To', 'Date']],
       body: tableRows,
@@ -247,11 +260,11 @@ export default function Admin() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {[
-          { label: 'Total Reports', value: stats.total, icon: BarChart2, color: 'from-primary to-blue-600', onClick: () => setFilterStatus('All'), active: filterStatus === 'All' },
-          { label: 'Pending', value: stats.pending, icon: Clock, color: 'from-yellow-500 to-amber-600', onClick: () => setFilterStatus('Pending'), active: filterStatus === 'Pending' },
-          { label: 'In Progress', value: stats.inProgress, icon: AlertCircle, color: 'from-blue-500 to-indigo-600', onClick: () => setFilterStatus('In Progress'), active: filterStatus === 'In Progress' },
-          { label: 'Resolved', value: stats.resolved, icon: CheckCircle2, color: 'from-green-500 to-emerald-600', onClick: () => setFilterStatus('Resolved'), active: filterStatus === 'Resolved' },
-          { label: 'SLA Breach', value: stats.slaBreach, icon: ShieldAlert, color: 'from-red-500 to-rose-600', onClick: () => setFilterStatus('Pending'), active: false },
+          { label: 'Total Reports', value: stats.total, icon: BarChart2, color: 'from-primary to-blue-600', onClick: () => { setFilterStatus('All'); setActiveTab('issues'); }, active: filterStatus === 'All' },
+          { label: 'Pending', value: stats.pending, icon: Clock, color: 'from-yellow-500 to-amber-600', onClick: () => { setFilterStatus('Pending'); setActiveTab('issues'); }, active: filterStatus === 'Pending' },
+          { label: 'In Progress', value: stats.inProgress, icon: AlertCircle, color: 'from-blue-500 to-indigo-600', onClick: () => { setFilterStatus('In Progress'); setActiveTab('issues'); }, active: filterStatus === 'In Progress' },
+          { label: 'Resolved', value: stats.resolved, icon: CheckCircle2, color: 'from-green-500 to-emerald-600', onClick: () => { setFilterStatus('Resolved'); setActiveTab('issues'); }, active: filterStatus === 'Resolved' },
+          { label: 'SLA Breach', value: stats.slaBreach, icon: ShieldAlert, color: 'from-red-500 to-rose-600', onClick: () => { setFilterStatus('Pending'); setActiveTab('issues'); }, active: false },
         ].map((stat, i) => (
           <motion.div
             key={i}
@@ -551,6 +564,15 @@ export default function Admin() {
                           <p className="text-sm font-bold">{userComplaints.length}</p>
                           <p className="text-xs text-muted-foreground">Issues Raised</p>
                         </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-destructive hover:bg-destructive/10 w-8 h-8 rounded-full z-10 relative" 
+                          onClick={(e) => handleDeleteUser(e, u._id, u.name)}
+                          title="Delete User"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                         <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                       </div>
                     </div>
