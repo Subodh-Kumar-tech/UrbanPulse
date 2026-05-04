@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FadeIn } from '@/components/ui/Animations';
 import { useStore } from '@/lib/Store';
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import { Link } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
