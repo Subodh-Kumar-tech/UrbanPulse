@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useStore } from '@/lib/Store';
-import { cn } from '@/lib/utils';
+import { getImageUrl, cn } from '@/lib/utils';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -73,7 +73,7 @@ export default function IssueDetail() {
         {/* Left Column: Image & Map */}
         <div className="lg:col-span-2 space-y-6">
           <div className="glass-card overflow-hidden h-[400px]">
-            <img src={issue.img} alt={issue.title} className="w-full h-full object-cover" />
+            <img src={getImageUrl(issue.img)} alt={issue.title} className="w-full h-full object-cover" />
           </div>
 
           {/* Interactive Map */}

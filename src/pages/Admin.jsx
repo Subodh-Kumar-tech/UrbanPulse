@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { FadeIn } from '@/components/ui/Animations';
 import { useStore } from '@/lib/Store';
 import { api } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -408,7 +409,7 @@ export default function Admin() {
                       onClick={() => setExpandedId(isExpanded ? null : complaint._id)}
                     >
                       <img
-                        src={complaint.img}
+                        src={getImageUrl(complaint.img)}
                         alt={complaint.title}
                         className="w-14 h-14 rounded-lg object-cover flex-shrink-0 border border-border"
                       />

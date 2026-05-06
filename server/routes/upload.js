@@ -38,7 +38,7 @@ router.post('/', upload.array('photos', 3), (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: 'No files uploaded' });
     }
-    const urls = req.files.map(file => `http://localhost:5000/uploads/${file.filename}`);
+    const urls = req.files.map(file => `/uploads/${file.filename}`);
     res.json({ urls });
   } catch (err) {
     res.status(500).json({ message: err.message });

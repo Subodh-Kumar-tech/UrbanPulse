@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { FadeIn, StaggerItem, StaggerChildren, ScaleHover } from '@/components/ui/Animations';
 import { useStore } from '@/lib/Store';
+import { getImageUrl } from '@/lib/utils';
 import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 
 const CATEGORIES = [
@@ -202,7 +203,7 @@ export default function Dashboard() {
                 <div className="glass-card flex flex-col h-full overflow-hidden border">
                   <div className="h-48 relative overflow-hidden group">
                     <img 
-                      src={complaint.img} 
+                      src={getImageUrl(complaint.img)} 
                       alt={complaint.title} 
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />

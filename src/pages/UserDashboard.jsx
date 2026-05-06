@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { FadeIn, ScaleHover, StaggerChildren, StaggerItem } from '@/components/ui/Animations';
 import { useStore } from '@/lib/Store';
+import { getImageUrl } from '@/lib/utils';
 
 export default function UserDashboard() {
   const { user, complaints } = useStore();
@@ -130,7 +131,7 @@ export default function UserDashboard() {
                 <ScaleHover>
                   <div className="glass-card p-4 sm:p-6 flex flex-col sm:flex-row items-center gap-6 rounded-2xl transition-all hover:bg-muted/10">
                     <img 
-                      src={c.img} 
+                      src={getImageUrl(c.img)} 
                       alt={c.title} 
                       className="w-full sm:w-32 sm:h-24 object-cover rounded-xl shadow-sm"
                     />
