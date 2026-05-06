@@ -157,15 +157,19 @@ export function StoreProvider({ children }) {
 
   const uploadImages = async (files) => {
     try {
-      const formData = new FormData();
-      files.forEach(file => formData.append('photos', file));
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/upload`, {
-        method: 'POST',
-        body: formData
+      const fileToDataURL = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
       });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
-      return data.urls || [];
+
+      const urls = [];
+      for (const file of files) {
+        const base64 = await fileToDataURL(file);
+        urls.push(base64);
+      }
+      return urls;
     } catch (err) {
       console.error("Upload error:", err);
       return [];
