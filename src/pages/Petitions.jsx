@@ -36,11 +36,16 @@ const PETITIONS = [
 ];
 
 export default function Petitions() {
-  const [signed, setSigned] = useState([]);
+  const [signed, setSigned] = useState(() => {
+    const saved = localStorage.getItem('signed_petitions');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   const handleSign = (id) => {
     if (!signed.includes(id)) {
-      setSigned([...signed, id]);
+      const newSigned = [...signed, id];
+      setSigned(newSigned);
+      localStorage.setItem('signed_petitions', JSON.stringify(newSigned));
     }
   };
 

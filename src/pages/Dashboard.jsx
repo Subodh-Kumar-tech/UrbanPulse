@@ -137,6 +137,14 @@ export default function Dashboard() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
+            <div className="flex flex-wrap justify-center gap-4 mt-6">
+              {chartData.map((d, i) => (
+                <div key={d.name} className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></span>
+                  {d.name} ({d.value})
+                </div>
+              ))}
+            </div>
           </div>
           <div className="glass-card p-6">
             <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-6">Status Distribution</h4>

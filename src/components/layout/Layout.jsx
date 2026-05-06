@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@/lib/Store';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -14,6 +14,22 @@ export default function Layout() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+  const notificationRef = useRef(null);
+  const userDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setShowUserDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -83,7 +99,7 @@ export default function Layout() {
               {user ? (
                 <div className="flex items-center gap-4">
                   {/* Notifications */}
-                  <div className="relative">
+                  <div className="relative" ref={notificationRef}>
                     <button 
                       onClick={() => setShowNotifications(!showNotifications)}
                       className="relative p-2.5 rounded-xl hover:bg-secondary transition-all"
@@ -161,7 +177,7 @@ export default function Layout() {
                   </div>
 
                   {/* User Dropdown */}
-                  <div className="relative">
+                  <div className="relative" ref={userDropdownRef}>
                     <button 
                       onClick={() => setShowUserDropdown(!showUserDropdown)}
                       className="flex items-center gap-3 p-1 pr-4 rounded-full bg-slate-50 hover:bg-slate-100 transition-all border border-border group"

@@ -21,6 +21,13 @@ router.post('/signup', async (req, res) => {
       type: 'welcome'
     });
 
+    // Notify Admin about new user
+    await Notification.create({
+      userId: 'admin',
+      message: `New citizen joined the portal: ${user.name} (${user.email})`,
+      type: 'system'
+    });
+
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {

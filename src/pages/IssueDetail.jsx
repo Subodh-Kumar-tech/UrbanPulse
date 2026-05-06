@@ -38,7 +38,17 @@ export default function IssueDetail() {
 
   const handleUpvote = async () => {
     if (!user) return alert("Please log in to upvote.");
-    await upvoteComplaint(id, user._id || user.id);
+    const userId = user._id || user.id;
+    
+    // Optimistic UI update
+    const isUpvoted = issue.upvotes?.includes(userId);
+    const newUpvotes = isUpvoted 
+      ? issue.upvotes.filter(id => id !== userId) 
+      : [...(issue.upvotes || []), userId];
+      
+    setIssue(prev => ({ ...prev, upvotes: newUpvotes }));
+    
+    await upvoteComplaint(id, userId);
   };
 
   const handleCommentSubmit = async (e) => {

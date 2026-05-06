@@ -117,13 +117,36 @@ router.post('/:id/upvote', async (req, res) => {
     
     // Toggle upvote
     const index = complaint.upvotes.indexOf(userId);
+    let isUpvoting = false;
     if (index === -1) {
       complaint.upvotes.push(userId);
+      isUpvoting = true;
     } else {
       complaint.upvotes.splice(index, 1);
     }
 
     await complaint.save();
+
+    // Notify creator on upvote
+    if (isUpvoting) {
+      const creatorId = complaint.userId ? complaint.userId.toString() : complaint.user;
+      if (creatorId !== userId) {
+        await Notification.create({
+          userId: creatorId,
+          message: `Someone upvoted your report: "${complaint.title}"`,
+          complaintId: complaint._id
+        });
+      }
+      
+      // Notify Admin about upvote activity
+      await Notification.create({
+        userId: 'admin',
+        message: `High engagement: A report just received a new upvote: "${complaint.title}"`,
+        complaintId: complaint._id,
+        type: 'system'
+      });
+    }
+
     res.json(complaint);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -151,6 +174,14 @@ router.post('/:id/comment', async (req, res) => {
          complaintId: complaint._id
        });
     }
+
+    // Notify Admin about new activity
+    await Notification.create({
+      userId: 'admin',
+      message: `${user} posted a new comment on report: "${complaint.title}"`,
+      complaintId: complaint._id,
+      type: 'system'
+    });
 
     res.json(complaint);
   } catch (err) {
