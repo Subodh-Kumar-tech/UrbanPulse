@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, MapPin, FileText, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -6,7 +6,7 @@ import { Input, Textarea } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { FadeIn } from '@/components/ui/Animations';
 import { useStore } from '@/lib/Store';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -19,11 +19,19 @@ L.Icon.Default.mergeOptions({
 });
 
 function LocationPicker({ position, setPosition }) {
+  const map = useMap();
   useMapEvents({
     click(e) {
       setPosition(e.latlng);
     },
   });
+
+  useEffect(() => {
+    if (position) {
+      map.flyTo(position, map.getZoom(), { duration: 1 });
+    }
+  }, [position, map]);
+
   return position ? <Marker position={position} /> : null;
 }
 
@@ -52,6 +60,22 @@ export default function ReportIssue() {
       const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       setPosition(newPos);
     });
+  };
+
+  const handleSearchLocation = async () => {
+    if (!formData.location) return;
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.location)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        setPosition({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+      } else {
+        alert("Location not found. Try a different place name or pincode.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to search location.");
+    }
   };
 
   const handleNext = () => setStep(s => Math.min(s + 1, STEPS.length));
@@ -258,13 +282,24 @@ export default function ReportIssue() {
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input id="location" className="pl-9 pr-24" placeholder="Start typing address..." value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} />
-                  <Button 
-                    variant="ghost" size="sm" 
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 text-[10px] font-bold text-primary hover:bg-primary/10"
-                    onClick={handleAutoLocate}
-                  >
-                    📍 Use GPS
-                  </Button>
+                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <Button 
+                      type="button"
+                      variant="ghost" size="sm" 
+                      className="h-8 text-[10px] font-bold text-primary hover:bg-primary/10"
+                      onClick={handleSearchLocation}
+                    >
+                      🔍 Search
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant="ghost" size="sm" 
+                      className="h-8 text-[10px] font-bold text-primary hover:bg-primary/10"
+                      onClick={handleAutoLocate}
+                    >
+                      📍 Use GPS
+                    </Button>
+                  </div>
                 </div>
               </div>
               

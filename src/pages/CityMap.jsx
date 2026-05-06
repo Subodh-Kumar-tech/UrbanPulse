@@ -106,16 +106,8 @@ export default function CityMap() {
               if (!c.coordinates?.lat || !c.coordinates?.lng) return null;
               const pos = [c.coordinates.lat, c.coordinates.lng];
               const color = STATUS_COLORS[c.status] || '#6b7280';
-              const radius = PRIORITY_RADIUS[c.priority] || 120;
               return (
-                <div key={c._id}>
-                  {/* Subtle impact radius for critical/high priority */}
-                  <Circle
-                    center={pos}
-                    radius={radius}
-                    pathOptions={{ color, fillColor: color, fillOpacity: 0.15, weight: 1 }}
-                  />
-                  <Marker position={pos} icon={createIcon(color)}>
+                  <Marker key={`marker-${c._id}`} position={pos} icon={createIcon(color)}>
                     <Popup className="custom-popup">
                       <div className="min-w-[180px] p-1">
                         <div className="flex justify-between items-start gap-2 mb-1">
@@ -139,10 +131,23 @@ export default function CityMap() {
                       </div>
                     </Popup>
                   </Marker>
-                </div>
               );
             })}
           </MarkerClusterGroup>
+          {withCoords.map(c => {
+              if (!c.coordinates?.lat || !c.coordinates?.lng) return null;
+              const pos = [c.coordinates.lat, c.coordinates.lng];
+              const color = STATUS_COLORS[c.status] || '#6b7280';
+              const radius = PRIORITY_RADIUS[c.priority] || 120;
+              return (
+                <Circle
+                  key={`circle-${c._id}`}
+                  center={pos}
+                  radius={radius}
+                  pathOptions={{ color, fillColor: color, fillOpacity: 0.15, weight: 1 }}
+                />
+              );
+          })}
         </MapContainer>
 
         {/* Map Overlay info */}
