@@ -45,6 +45,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(complaint)
     });
+    if (!res.ok) throw new Error(await res.text());
     return res.json();
   },
 

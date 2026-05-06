@@ -96,8 +96,10 @@ export function StoreProvider({ children }) {
       };
       const saved = await api.addComplaint(newComplaint);
       setComplaints(prev => [saved, ...prev]);
+      return saved;
     } catch (err) {
       console.error("Add complaint error:", err);
+      throw err;
     }
   };
 
